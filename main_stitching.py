@@ -23,23 +23,24 @@ if __name__ == '__main__':
 
     save_image = False  # Enables saving of matches image
     use_matplotlib = False  # Enables saving of matches image
-    img_paths = ['gusshaus/Image-02.jpg',
-                 'gusshaus/Image-00.jpg',
-                 'gusshaus/Image-01.jpg',
-                 'gusshaus/Image-03.jpg',
-                 'gusshaus/Image-04.jpg']
-    # img_paths = ['desk/Image-00.jpg',
-    #             'desk/Image-01.jpg',
-    #             'desk/Image-02.jpg',
-    #             'desk/Image-03.jpg']
+   # img_paths = ['gusshaus/Image-02.jpg',
+   #              'gusshaus/Image-00.jpg',
+   #              'gusshaus/Image-01.jpg',
+   #              'gusshaus/Image-03.jpg',
+   #              'gusshaus/Image-04.jpg']
+    img_paths = ['desk/Image-00.jpg',
+                 'desk/Image-01.jpg',
+                 'desk/Image-02.jpg',
+                 'desk/Image-03.jpg']
 
     # parameters <<< try different settings!
-    sigma1 = 0.8
+    sigma1 = 2
     sigma2 = 1.5
-    threshold = 0.01
+    threshold = 0.45
     k = 0.04
-    patch_size = 5
-    ransac_confidence = 0.8
+    patch_size = 20
+
+    ransac_confidence = 0.6
     ransac_inlier_threshold = 10.
 
     # Load the images
