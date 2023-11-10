@@ -23,15 +23,15 @@ if __name__ == '__main__':
 
     save_image = False  # Enables saving of matches image
     use_matplotlib = False  # Enables saving of matches image
-    img_path_1 = 'desk/Image-00.jpg'  # Try different images
-    img_path_2 = 'desk/Image-01.jpg'
+    img_path_1 =  'gusshaus/Image-00.jpg' 
+    img_path_2 = 'gusshaus/Image-01.jpg'
 
     # parameters <<< try different settings!
-    sigma1 = 1.0
+    sigma1 = 2
     sigma2 = 1.5
-    threshold = 0.9
+    threshold = 0.49
     k = 0.04
-    patch_size = 5
+    patch_size = 100
 
     # Load images
     current_path = Path(__file__).parent
