@@ -32,11 +32,21 @@ if __name__ == '__main__':
                  'desk/Image-01.jpg',
                  'desk/Image-02.jpg',
                  'desk/Image-03.jpg']
+    
+   # img_paths = ['stairs/Image_00.jpg',
+   #              'stairs/Image_01.jpg',
+   #              'stairs/Image_02.jpg',
+   #              'stairs/Image_03.jpg']
+
+   # img_paths = ['own_data/dino01.jpg',
+   #              'own_data/dino00.jpg',
+   #              'own_data/dino02.jpg',
+   #              'own_data/dino03.jpg']
 
     # parameters <<< try different settings!
-    sigma1 = 2
+    sigma1 = 1
     sigma2 = 1.5
-    threshold = 0.45
+    threshold = 0.1
     k = 0.04
     patch_size = 20
 
@@ -113,3 +123,4 @@ if __name__ == '__main__':
         img_blend[np.all(img_transformed != 0.0, axis=2)] = img_transformed[np.all(img_transformed != 0.0, axis=2)]
 
     show_image(img_blend, "Stitched Image", use_matplotlib=use_matplotlib, save_image=save_image)
+
