@@ -55,31 +55,40 @@ def harris_corner(img: np.ndarray,
     """
     
     ######################################################
-
-    # Initialize Gaussian Kernel
+    
+    # Compute gaussian for sigma1
     kernel_width = 2*math.ceil(3*sigma1)+1 # taken from exercise 1
     kernel = cv2.getGaussianKernel(kernel_width, sigma1) # Produces an array with ( kernel_width x 1)
-    gauss = np.outer(kernel, kernel.transpose()) # Produces an Gaussian kernel of shape ( kernel_width x kernel_width)
+    gauss_1 = np.outer(kernel, kernel.transpose()) # Produces an Gaussian kernel of shape ( kernel_width x kernel_width)
 
-    # Apply Gaussian Kernel 
-    img_blur = cv2.filter2D(img, -1, gauss)    # Create blurred image
+    # Compute gradients
+    gauss_derx = cv2.filter2D(gauss_1, ddepth=-1, kernel=np.array([[-1, 0, 1]])) # filter2D to handle borders
 
-    # Compute Gaussian derivative 
-    I_x = cv2.filter2D(img_blur, -1, np.array([[-1, 0, 1]], dtype=np.float32))
-    I_y = cv2.filter2D(img_blur, -1, np.array([[-1, 0, 1]], dtype=np.float32).T)
+    gauss_dery = cv2.filter2D(gauss_1, ddepth=-1, kernel=np.array([[-1], [0], [1]]))
 
-    # Compute parameters for weighting kernel
+    # Compute horizontal and vertical derivatives of image
+    I_x = cv2.filter2D(img, ddepth=-1, kernel=gauss_derx)
+    I_y = cv2.filter2D(img, ddepth=-1, kernel=gauss_dery)
+
+    # Calculate products
     I_x2 = I_x * I_x
     I_y2 = I_y * I_y
     I_xy = I_x * I_y
 
+    # Compute gaussian for sigma2
+    kernel_width = 2*math.ceil(3*sigma2)+1 # taken from exercise 1
+    # Weighted products
+    wI_x2 = cv2.GaussianBlur(I_x2, (kernel_width, kernel_width), sigma2)
+    wI_y2 = cv2.GaussianBlur(I_y2, (kernel_width, kernel_width), sigma2)
+    wI_xy = cv2.GaussianBlur(I_xy, (kernel_width, kernel_width), sigma2)
+
     # Harris function
-    M = I_x2 * I_y2 - I_xy * I_xy
-    trace = I_x2 + I_y2
-    R = M - k * (trace ** 2)
- 
+    M = wI_x2 * wI_y2 - wI_xy * wI_xy
+    trace = wI_x2 + wI_y2
+    R = M - k * (trace ** 2) # Harris response
+     
     # Normalize harris 
-    R_norm = cv2.normalize(R, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+    R_norm = cv2.normalize(R, R, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
 
     # Apply non max suppression
     R_nonmax = non_max(R_norm)
@@ -88,9 +97,10 @@ def harris_corner(img: np.ndarray,
     keypoints = []  # Initialize keypoints
     for y in range(img.shape[0]):
         for x in range(img.shape[1]):
-            if R_nonmax[y, x] > threshold:
-                keypoints.append(cv2.KeyPoint(x, y, 1, 0, float(R_nonmax[y, x])))
-            
+    # Qualified as keypoint when thresholding and nonmax su
+            if R_norm[y, x] > threshold and R_nonmax[y, x] == True:
+                keypoints.append(cv2.KeyPoint(x, y, 1, 0, float(R_norm[y, x])))
+
     ######################################################
     return keypoints
     ######################################################
