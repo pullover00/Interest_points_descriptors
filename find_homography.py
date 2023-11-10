@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """ Find the projective transformation matrix (homography) between from a source image to a target image.
@@ -41,84 +41,72 @@ def find_homography_ransac(source_points: np.ndarray,
     """
 
     ######################################################
-    best_H = None
+    # Initialize output parameters
+    best_homography = None 
     best_inliers = np.array([], dtype=bool)
-    best_num_inliers = 0
-    max_iterations = 1000  # You can adjust this value based on your needs
-
+    best_error = float('inf')
     num_matches = source_points.shape[0]
+
+    max_iterations = 1000  # High number as algorithm should be terminated before
 
 
     # Parameters
-    N = source_points.shape[0] # number of data points 
+    N = source_points.shape[0]  # number of data points
     min_sample_size = 4
 
     # Starting parameters
-    inliers = 0
-
     max_iteration = 1000
-
-    # Computation of probability condition
-   # e = 
+    m = 1 # 1D because we are estimating a point 
+    e = m/N  # probability of at least one outlier-free sample
 
     # Computation of k
-    #k_numerator = np.log(1-confidence)
-    #k_denumerator = np.log(1-((inliers/N)*(inliers-1)/(N-1))
-   # k = k_numerator / k_denumerator # expected trials to succeed
-    
-    # probability condition
-    #while 1-(1-e) <= confidence:
-    
-    # Get 4 random matches
-   # for trials in range(k):
-    for iteration in range(max_iteration):
-       
-       # Sample four random points 
-       sample_indices = np.random.sample(range(N), min_sample_size) # Sample minimal set m
-       # Find the sampled random points in the source points and the sample points 
-       source_sample = source_points[sample_indices]
-       target_sample = target_points[sample_indices]
+    k_numerator = np.log(1 - confidence)
+    k_denominator = np.log(1 - (1 - e) ** min_sample_size)
+    k = k_numerator / k_denominator  # expected trials to succeed
+  
+    # Pre-compute some values
+    target_points_homogeneous = np.vstack((target_points.T, np.ones(num_matches)))
+    inlier_threshold_squared = inlier_threshold ** 2
 
-       # Calculate the homography matrix by using least square implementation 
-       homography_tmp = find_homography_leastsquares(source_sample, target_sample)   # Estimate model T
+    for iteration in range(int(max_iteration)):
+        # Sample four random points
+        sample_indices = np.random.choice(range(N), min_sample_size, replace=False) # choose random number
+        source_sample = source_points[sample_indices] # select corresponting samples
+        target_sample = target_points[sample_indices]
 
-       # Calculate number of inliers 
-       # Apply transformation to all source points
-       transformed_source_points = np.dot(homography, np.vstack((source_points.T, np.ones(N))))
-       transformed_source_points = transformed_source_points[:2, :] / transformed_source_points[2, :]
+        # Calculate the homography matrix by using least square implementation
+        homography = find_homography_leastsquares(source_sample, target_sample)
 
-       # Compute euclidean distance of all transformed points to respective points on target space 
-       distances = np.linalg.norm(transformed_source_points - target_points.T, axis=0)  
+        # Apply transformation to all source points
+        transformed_source_points = np.dot(homography, np.vstack((source_points.T, np.ones(N))))
+        transformed_source_points = transformed_source_points[:2, :] / transformed_source_points[2, :]
 
-       # Calculate mean error
-       MSE = np.sqrt(np.sum(distances))/N
+        # Compute squared Euclidean distance of all transformed points to respective points on target space
+        distances_squared = np.sum((transformed_source_points - target_points.T) ** 2, axis=0)
 
-       # Drop points which do not stisfy the defined threshold
-       inliers = distances < inlier_threshold 
-       num_inliers = np.sum(inliers)
+        # Identify inliers
+        inliers = distances_squared < inlier_threshold_squared
+        num_inliers = np.sum(inliers)
 
-       # Update best solution
-       if num_inliers > best_num_inliers: # if more inliers are found
-        best_homography = homography # update homography
-        best_inliers = num_inliers # update number of inliers
+        # Calculate mean squared error
+        mean_error_squared = np.mean(distances_squared)
 
-        # Check termination based on confidence level
-        if num_inliers >= (confidence / 100) * num_matches:
-            break
-        
-    # Last refinement
-    inlier_source = source_points[best_inliers]
-    inlier_target = target_points[best_inliers]
-    best_suggested_homography = find_homography_leastsquares(inlier_source, inlier_target)
+        # Update best solution if the error is improved
+        if num_inliers > 4 and mean_error_squared < best_error:
+            best_homography = homography
+            best_inliers = inliers
+            best_error = mean_error_squared
 
-   
-    # Write your own code here
-   # best_suggested_homography = np.eye(3)
-   # best_inliers = np.full(shape=len(target_points), fill_value=True, dtype=bool)
-   # num_iterations = 0
+            # Check termination based on confidence level
+            if (1-(e**k)) > (1-confidence): 
+                break
 
-    ######################################################
-    return best_suggested_homography, best_inliers, num_iterations
+    # Last refinement using all inliers
+    inlier_source = source_points[best_inliers] # find inliers in source
+    inlier_target = target_points[best_inliers] # find inliers in target
+    best_suggested_homography = find_homography_leastsquares(inlier_source, inlier_target) # last square refinement
+
+    return best_suggested_homography, best_inliers, iteration
 
     ######################################################
     # Sources
@@ -144,8 +132,8 @@ def find_homography_leastsquares(source_points: np.ndarray, target_points: np.nd
     """
     ######################################################
     # Check if we have at least 4 point correspondences
-    if source_points.shape[0] < 4 or target_points.shape[0] < 4:
-        raise ValueError("At least 4 matching points are required.")
+    while source_points.shape[0] < 4 or target_points.shape[0] < 4:
+        continue
 
     # Create the coefficient matrix A
     A = np.zeros((2 * source_points.shape[0], 9)) # Initialize shape of A matrix
