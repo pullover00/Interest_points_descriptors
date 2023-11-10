@@ -58,14 +58,24 @@ def compute_descriptors(img: np.ndarray,
         if x1 < 0 or x2 >= img.shape[1] or y1 < 0 or y2 >= img.shape[0]:
             continue
 
+        # Following code as NaN values in descriptor cannot be processed
         # Get patch from image
         patch = img[y1:y2, x1:x2]
-        patch_norm = (patch - np.mean(patch)) / np.std(patch)  # Normalize patch
+        
+         # Check if standard deviation is zero
+        std_dev = np.std(patch)
+        if std_dev == 0:
+            # if strandard deviation is zero, set normalized patch to zero
+            patch_norm = np.zeros_like(patch)
+        else:
+            # Normalize patch
+            patch_norm = (patch - np.mean(patch)) / std_dev
 
-        # Generate descriptor
-        descriptor = patch_norm.flatten()  # Flatten patch
-        descriptors.append(descriptor)  # Append descriptor to list
+          # Generate descriptor
+        feature_vector = patch_norm.flatten()  # concentating normalized patch
+        descriptors.append(feature_vector)  # Append feature vector to list of descriptors
         filtered_keypoints.append(keypoint)
 
     return filtered_keypoints, np.array(descriptors, dtype=np.float32)
+
 
