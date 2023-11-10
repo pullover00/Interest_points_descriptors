@@ -26,7 +26,7 @@ if __name__ == '__main__':
     use_matplotlib = False
     debug = True  # <<< change to reduce output when you're done
 
-    ransac_confidence = 0.85
+    ransac_confidence = 0.1
     ransac_inlier_threshold = 5.
 
     # Get path
@@ -93,6 +93,11 @@ if __name__ == '__main__':
                                                                       target_points,
                                                                       confidence=ransac_confidence,
                                                                       inlier_threshold=ransac_inlier_threshold)
+    
+   # homography = find_homography_leastsquares(source_points,
+   #                                           target_points)
+                                                                      
+
 
     if debug:
         draw_params = dict(matchesMask=best_inliers.astype(int),
@@ -114,3 +119,4 @@ if __name__ == '__main__':
     scene_img_blend = scene_img.copy()
     scene_img_blend[transformed_object_img != 0] = transformed_object_img[transformed_object_img != 0]
     show_image(scene_img_blend, "Overlay Object", save_image=save_image, use_matplotlib=use_matplotlib)
+
