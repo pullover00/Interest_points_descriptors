@@ -156,8 +156,6 @@ def debug_homography() -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     scene_height, scene_width = 320, 480
     scene_img = np.zeros(shape=(scene_height, scene_width, 3), dtype = np.int32)
 
-
-
     # Get the height and width of our template object which will define the size of the rectangles we draw
     rect_height, rect_width = (60, 100)
 
@@ -198,7 +196,6 @@ def non_max(input_array: np.array) -> np.array:
     dilation = cv2.dilate(input_array, kernel)
     return input_array > dilation
 
-
 def filter_matches(matches: Tuple[Tuple[cv2.DMatch]]) -> List[cv2.DMatch]:
     """Filter out all matches that do not satisfy the Lowe Distance Ratio Condition
 
@@ -216,8 +213,8 @@ def filter_matches(matches: Tuple[Tuple[cv2.DMatch]]) -> List[cv2.DMatch]:
         # Find closest match
         m, n = match
         # Check for condition
-        if m.distance < 0.8 * n.distance:
-            filtered_matches.append(m)
+        if m.distance < 0.6 * n.distance:
+            filtered_matches.append(m) # Append to list if condition is fulfilled
         
     ######################################################
     # Sources:
