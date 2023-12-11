@@ -2,14 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """ Find the projective transformation matrix (homography) between from a source image to a target image.
-
-Author: FILL IN
-MatrNr: FILL IN
 """
-
-import numpy as np
-from helper_functions import *
-
 
 def find_homography_ransac(source_points: np.ndarray,
                            target_points: np.ndarray,
@@ -52,11 +45,11 @@ def find_homography_ransac(source_points: np.ndarray,
 
     # Parameters
     N = source_points.shape[0]  # number of data points
-    min_sample_size = 4
+   # min_sample_size = 4
 
     # Starting parameters
     max_iteration = 1000
-    m = 1 # 1D because we are estimating a point 
+    m = 4 # sample size
     e = m/N  # probability of at least one outlier-free sample
 
     # Computation of k
@@ -92,7 +85,7 @@ def find_homography_ransac(source_points: np.ndarray,
         mean_error_squared = np.mean(distances_squared)
 
         # Update best solution if the error is improved
-        if num_inliers > 4 and mean_error_squared < best_error:
+        if (1 - e ** m ) ** iteration < (1 - confidence ) :
             best_homography = homography
             best_inliers = inliers
             best_error = mean_error_squared
