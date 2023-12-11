@@ -45,7 +45,6 @@ def find_homography_ransac(source_points: np.ndarray,
 
     # Parameters
     N = source_points.shape[0]  # number of data points
-   # min_sample_size = 4
 
     # Starting parameters
     max_iteration = 1000
@@ -54,7 +53,7 @@ def find_homography_ransac(source_points: np.ndarray,
 
     # Computation of k
     k_numerator = np.log(1 - confidence)
-    k_denominator = np.log(1 - (1 - e) ** min_sample_size)
+    k_denominator = np.log(1 - (1 - e) ** m)
     k = k_numerator / k_denominator  # expected trials to succeed
   
     # Pre-compute some values
@@ -64,7 +63,7 @@ def find_homography_ransac(source_points: np.ndarray,
     for iteration in range(int(max_iteration)):
         # Sample four random points
         sample_indices = np.random.choice(range(N), min_sample_size, replace=False) # choose random number
-        source_sample = source_points[sample_indices] # select corresponting samples
+        source_sample = source_points[sample_indices] # select corresponding samples
         target_sample = target_points[sample_indices]
 
         # Calculate the homography matrix by using least square implementation
